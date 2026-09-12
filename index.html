@@ -1,0 +1,3932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Fusion Detector - SIH 2026 sensor fusion demonstrator"
+    >
+
+    <title>
+        Fusion Detector | SIH 2026
+    </title>
+
+    <!-- MQTT over WebSocket -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+
+    <style>
+
+        /* =====================================================
+           DESIGN TOKENS
+        ===================================================== */
+
+        :root {
+
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+
+            --border: #e3e7ec;
+            --border-strong: #d2d8df;
+
+            --text: #101828;
+            --text-secondary: #344054;
+            --muted: #667085;
+
+            --blue: #175cd3;
+            --blue-soft: #eff8ff;
+
+            --green: #039855;
+            --green-soft: #ecfdf3;
+
+            --yellow: #b54708;
+            --yellow-soft: #fffaeb;
+
+            --red: #d92d20;
+            --red-soft: #fef3f2;
+
+            --purple: #6941c6;
+            --purple-soft: #f4f3ff;
+
+            --orange: #c4320a;
+            --orange-soft: #fff6ed;
+
+            --shadow:
+                0 1px 2px rgba(16, 24, 40, 0.03),
+                0 4px 14px rgba(16, 24, 40, 0.035);
+
+            --radius: 10px;
+        }
+
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            background: var(--bg);
+
+            color: var(--text);
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            -webkit-font-smoothing: antialiased;
+        }
+
+
+        button,
+        input {
+            font: inherit;
+        }
+
+
+        button {
+            cursor: pointer;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .topbar {
+
+            height: 68px;
+
+            background: var(--surface);
+
+            border-bottom: 1px solid var(--border);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+        }
+
+
+        .topbar-inner {
+
+            width: min(1440px, calc(100% - 40px));
+
+            height: 100%;
+
+            margin: auto;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+        }
+
+
+        .brand-mark {
+
+            width: 37px;
+            height: 37px;
+
+            border-radius: 8px;
+
+            background: #111827;
+
+            color: #ffffff;
+
+            display: grid;
+
+            place-items: center;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            letter-spacing: -0.5px;
+        }
+
+
+        .brand-name {
+
+            font-size: 14px;
+
+            font-weight: 750;
+
+            letter-spacing: -0.1px;
+        }
+
+
+        .brand-sub {
+
+            margin-top: 2px;
+
+            color: var(--muted);
+
+            font-size: 10px;
+        }
+
+
+        .top-status {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+
+        .connection {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            height: 30px;
+
+            padding: 0 10px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 7px;
+
+            background: #ffffff;
+
+            color: var(--muted);
+
+            font-size: 10px;
+        }
+
+
+        .connection-dot {
+
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: #98a2b3;
+        }
+
+
+        .connection-dot.online {
+
+            background: var(--green);
+        }
+
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .page {
+
+            width: min(1440px, calc(100% - 40px));
+
+            margin: auto;
+
+            padding: 27px 0 45px;
+        }
+
+
+        .page-heading {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: flex-end;
+
+            gap: 25px;
+
+            margin-bottom: 18px;
+        }
+
+
+        .page-heading h1 {
+
+            margin: 0;
+
+            font-size: 25px;
+
+            line-height: 1.2;
+
+            letter-spacing: -0.65px;
+
+            font-weight: 780;
+        }
+
+
+        .page-heading p {
+
+            margin: 6px 0 0;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        .system-meta {
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            line-height: 1.7;
+
+            text-align: right;
+        }
+
+
+        .system-meta strong {
+
+            color: var(--text-secondary);
+
+            font-weight: 700;
+        }
+
+
+        /* =====================================================
+           PRIMARY SCREENING AREA
+        ===================================================== */
+
+        .screening-grid {
+
+            display: grid;
+
+            grid-template-columns: 1.6fr 0.8fr;
+
+            gap: 15px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .screening-card {
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            box-shadow: var(--shadow);
+
+            overflow: hidden;
+        }
+
+
+        .screening-header {
+
+            height: 47px;
+
+            padding: 0 18px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+
+        .section-label {
+
+            font-size: 9px;
+
+            font-weight: 750;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+            color: var(--muted);
+        }
+
+
+        .analysis-state {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            font-size: 9px;
+
+            font-weight: 700;
+
+            color: var(--green);
+        }
+
+
+        .analysis-state-dot {
+
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: var(--green);
+        }
+
+
+        .screening-body {
+
+            min-height: 150px;
+
+            padding: 25px 22px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 19px;
+        }
+
+
+        .status-icon {
+
+            width: 66px;
+            height: 66px;
+
+            flex: 0 0 66px;
+
+            border-radius: 12px;
+
+            display: grid;
+
+            place-items: center;
+
+            font-size: 27px;
+
+            font-weight: 800;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+        }
+
+
+        .status-copy {
+
+            min-width: 0;
+        }
+
+
+        .status-overline {
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.8px;
+        }
+
+
+        .status-title {
+
+            margin-top: 2px;
+
+            font-size: 27px;
+
+            font-weight: 820;
+
+            letter-spacing: -0.7px;
+        }
+
+
+        .status-description {
+
+            margin-top: 5px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+
+        /* Result states */
+
+        .state-negative .status-icon {
+
+            color: var(--green);
+
+            background: var(--green-soft);
+        }
+
+
+        .state-inconclusive .status-icon {
+
+            color: var(--yellow);
+
+            background: var(--yellow-soft);
+        }
+
+
+        .state-suspicious .status-icon {
+
+            color: var(--red);
+
+            background: var(--red-soft);
+        }
+
+
+        /* =====================================================
+           SCENARIO CARD
+        ===================================================== */
+
+        .scenario-card {
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            box-shadow: var(--shadow);
+
+            padding: 19px;
+        }
+
+
+        .scenario-label {
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            font-weight: 750;
+        }
+
+
+        .scenario-title {
+
+            margin-top: 11px;
+
+            font-size: 19px;
+
+            line-height: 1.25;
+
+            font-weight: 780;
+
+            letter-spacing: -0.3px;
+        }
+
+
+        .scenario-description {
+
+            margin-top: 7px;
+
+            color: var(--muted);
+
+            font-size: 10px;
+
+            line-height: 1.55;
+        }
+
+
+        .scenario-rule {
+
+            margin-top: 15px;
+
+            padding-top: 13px;
+
+            border-top: 1px solid var(--border);
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =====================================================
+           MAIN CONTENT GRID
+        ===================================================== */
+
+        .content-grid {
+
+            display: grid;
+
+            grid-template-columns: 1.5fr 0.82fr;
+
+            gap: 15px;
+
+            align-items: start;
+        }
+
+
+        .column {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 15px;
+        }
+
+
+        /* =====================================================
+           GENERIC CARD
+        ===================================================== */
+
+        .card {
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            box-shadow: var(--shadow);
+
+            overflow: hidden;
+        }
+
+
+        .card-header {
+
+            min-height: 48px;
+
+            padding: 11px 16px;
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+
+        .card-title {
+
+            font-size: 12px;
+
+            font-weight: 750;
+        }
+
+
+        .card-description {
+
+            margin-top: 3px;
+
+            color: var(--muted);
+
+            font-size: 9px;
+        }
+
+
+        .card-body {
+
+            padding: 16px;
+        }
+
+
+        /* =====================================================
+           SENSOR EVIDENCE
+        ===================================================== */
+
+        .evidence-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(5, minmax(0, 1fr));
+
+            gap: 9px;
+        }
+
+
+        .evidence {
+
+            min-width: 0;
+
+            padding: 12px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 8px;
+
+            background: var(--surface-2);
+        }
+
+
+        .evidence-name {
+
+            min-height: 23px;
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            line-height: 1.3;
+
+            font-weight: 650;
+        }
+
+
+        .evidence-value {
+
+            margin-top: 5px;
+
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+
+            font-size: 19px;
+
+            font-weight: 750;
+
+            letter-spacing: -0.5px;
+        }
+
+
+        .evidence-state {
+
+            margin-top: 2px;
+
+            font-size: 8px;
+
+            color: var(--muted);
+        }
+
+
+        .meter {
+
+            height: 4px;
+
+            margin-top: 9px;
+
+            border-radius: 10px;
+
+            background: #e9edf2;
+
+            overflow: hidden;
+        }
+
+
+        .meter-fill {
+
+            height: 100%;
+
+            width: 0%;
+
+            border-radius: inherit;
+
+            background: var(--blue);
+
+            transition: width 0.25s ease;
+        }
+
+
+        .evidence.high .meter-fill {
+
+            background: var(--red);
+        }
+
+
+        .evidence.high .evidence-state {
+
+            color: var(--red);
+
+            font-weight: 650;
+        }
+
+
+        /* =====================================================
+           FUSION ARCHITECTURE
+        ===================================================== */
+
+        .architecture {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 30px 1fr 30px 1fr;
+
+            align-items: center;
+
+            gap: 5px;
+        }
+
+
+        .architecture-box {
+
+            min-height: 96px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 8px;
+
+            padding: 13px;
+
+            background: var(--surface-2);
+        }
+
+
+        .architecture-step {
+
+            color: var(--blue);
+
+            font-size: 8px;
+
+            font-weight: 800;
+
+            letter-spacing: .7px;
+        }
+
+
+        .architecture-title {
+
+            margin-top: 7px;
+
+            font-size: 11px;
+
+            font-weight: 750;
+        }
+
+
+        .architecture-text {
+
+            margin-top: 5px;
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            line-height: 1.5;
+        }
+
+
+        .architecture-arrow {
+
+            text-align: center;
+
+            color: #98a2b3;
+
+            font-size: 17px;
+        }
+
+
+        /* =====================================================
+           WOKWI PROTOTYPE
+        ===================================================== */
+
+        .prototype-container {
+
+            background: #eef1f4;
+
+            padding: 10px;
+        }
+
+
+        .wokwi-frame {
+
+            display: block;
+
+            width: 100%;
+
+            height: 550px;
+
+            border: 1px solid #d5dae0;
+
+            border-radius: 7px;
+
+            background: #ffffff;
+        }
+
+
+        .prototype-footer {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 8px 2px 1px;
+        }
+
+
+        .prototype-note {
+
+            color: var(--muted);
+
+            font-size: 8px;
+
+            line-height: 1.4;
+        }
+
+
+        .wokwi-link {
+
+            color: var(--blue);
+
+            font-size: 9px;
+
+            font-weight: 650;
+
+            text-decoration: none;
+
+            white-space: nowrap;
+        }
+
+
+        .wokwi-link:hover {
+
+            text-decoration: underline;
+        }
+
+
+        /* =====================================================
+           DEMONSTRATION CONTROLS
+        ===================================================== */
+
+        .control {
+
+            margin-bottom: 15px;
+        }
+
+
+        .control:last-of-type {
+
+            margin-bottom: 0;
+        }
+
+
+        .control-top {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 7px;
+        }
+
+
+        .control-name {
+
+            color: var(--text-secondary);
+
+            font-size: 10px;
+
+            font-weight: 650;
+        }
+
+
+        .control-value {
+
+            color: var(--blue);
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 9px;
+
+            font-weight: 700;
+        }
+
+
+        input[type="range"] {
+
+            width: 100%;
+
+            height: 4px;
+
+            appearance: none;
+
+            border-radius: 10px;
+
+            outline: none;
+
+            background: #dfe4e9;
+        }
+
+
+        input[type="range"]::-webkit-slider-thumb {
+
+            appearance: none;
+
+            width: 14px;
+
+            height: 14px;
+
+            border-radius: 50%;
+
+            background: var(--blue);
+
+            border: 2px solid white;
+
+            box-shadow: 0 0 0 1px #b8c4d2;
+
+            cursor: pointer;
+        }
+
+
+        input[type="range"]::-moz-range-thumb {
+
+            width: 12px;
+
+            height: 12px;
+
+            border-radius: 50%;
+
+            background: var(--blue);
+
+            border: 2px solid white;
+
+            cursor: pointer;
+        }
+
+
+        .preset-grid {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 7px;
+
+            margin-top: 17px;
+        }
+
+
+        .preset {
+
+            padding: 9px 7px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 7px;
+
+            background: white;
+
+            color: var(--text-secondary);
+
+            font-size: 9px;
+
+            font-weight: 650;
+
+            transition:
+                background .15s ease,
+                border-color .15s ease;
+        }
+
+
+        .preset:hover {
+
+            background: #f8fafc;
+
+            border-color: var(--border-strong);
+        }
+
+
+        .preset.narcotics {
+
+            color: var(--purple);
+
+            background: var(--purple-soft);
+
+            border-color: #ddd6fe;
+        }
+
+
+        .preset.explosive {
+
+            color: var(--orange);
+
+            background: var(--orange-soft);
+
+            border-color: #fed7aa;
+        }
+
+
+        /* =====================================================
+           HARDWARE LEDS
+        ===================================================== */
+
+        .led-list {
+
+            display: grid;
+
+            gap: 7px;
+        }
+
+
+        .led-row {
+
+            height: 42px;
+
+            padding: 0 11px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 7px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            background: white;
+
+            transition:
+                border-color .2s ease,
+                background .2s ease;
+        }
+
+
+        .led-light {
+
+            width: 10px;
+
+            height: 10px;
+
+            border-radius: 50%;
+
+            background: #d0d5dd;
+
+            flex-shrink: 0;
+
+            transition:
+                background .2s ease,
+                box-shadow .2s ease;
+        }
+
+
+        /*
+           The glow is deliberately subtle.
+           It represents the physical LED without
+           turning the UI into a sci-fi interface.
+        */
+
+        .led-row.active-green {
+
+            border-color: #b7e4c7;
+
+            background: #fbfffc;
+        }
+
+
+        .led-row.active-green .led-light {
+
+            background: var(--green);
+
+            box-shadow:
+                0 0 0 3px rgba(3,152,85,.10),
+                0 0 9px rgba(3,152,85,.45);
+        }
+
+
+        .led-row.active-yellow {
+
+            border-color: #f1df9f;
+
+            background: #fffefa;
+        }
+
+
+        .led-row.active-yellow .led-light {
+
+            background: #f79009;
+
+            box-shadow:
+                0 0 0 3px rgba(247,144,9,.10),
+                0 0 9px rgba(247,144,9,.45);
+        }
+
+
+        .led-row.active-red {
+
+            border-color: #f3b7b3;
+
+            background: #fffafa;
+        }
+
+
+        .led-row.active-red .led-light {
+
+            background: var(--red);
+
+            box-shadow:
+                0 0 0 3px rgba(217,45,32,.10),
+                0 0 10px rgba(217,45,32,.5);
+        }
+
+
+        .led-label {
+
+            font-size: 10px;
+
+            font-weight: 650;
+        }
+
+
+        .led-state {
+
+            margin-left: auto;
+
+            color: var(--muted);
+
+            font-size: 8px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .5px;
+        }
+
+
+        /* =====================================================
+           SYSTEM INFORMATION
+        ===================================================== */
+
+        .info-list {
+
+            display: grid;
+
+            gap: 9px;
+        }
+
+
+        .info-row {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding-bottom: 9px;
+
+            border-bottom: 1px solid #f0f2f4;
+        }
+
+
+        .info-row:last-child {
+
+            padding-bottom: 0;
+
+            border-bottom: 0;
+        }
+
+
+        .info-label {
+
+            color: var(--muted);
+
+            font-size: 9px;
+
+            white-space: nowrap;
+        }
+
+
+        .info-value {
+
+            color: var(--text-secondary);
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 8px;
+
+            text-align: right;
+
+            word-break: break-word;
+        }
+
+
+        /* =====================================================
+           EVENT LOG
+        ===================================================== */
+
+        .event-log {
+
+            height: 125px;
+
+            overflow-y: auto;
+
+            padding: 9px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 7px;
+
+            background: #f8fafc;
+
+            font-family:
+                Consolas,
+                "Courier New",
+                monospace;
+
+            font-size: 8px;
+
+            color: var(--muted);
+        }
+
+
+        .event {
+
+            padding: 4px 0;
+
+            border-bottom: 1px solid #edf0f2;
+
+            line-height: 1.4;
+        }
+
+
+        .event:last-child {
+
+            border-bottom: none;
+        }
+
+
+        /* =====================================================
+           NOTICE
+        ===================================================== */
+
+        .notice {
+
+            margin-top: 15px;
+
+            padding: 12px 14px;
+
+            border: 1px solid #eadfbf;
+
+            border-radius: 8px;
+
+            background: #fffdf7;
+
+            color: #695c32;
+
+            font-size: 9px;
+
+            line-height: 1.55;
+        }
+
+
+        .notice strong {
+
+            font-weight: 750;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+
+            padding-top: 22px;
+
+            text-align: center;
+
+            color: #98a2b3;
+
+            font-size: 9px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media(max-width:1100px) {
+
+            .screening-grid,
+            .content-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .evidence-grid {
+
+                grid-template-columns:
+                    repeat(3, minmax(0,1fr));
+            }
+
+        }
+
+
+        @media(max-width:700px) {
+
+            .topbar-inner,
+            .page {
+
+                width: calc(100% - 20px);
+            }
+
+
+            .topbar {
+
+                height: 62px;
+            }
+
+
+            .page {
+
+                padding-top: 18px;
+            }
+
+
+            .page-heading {
+
+                display: block;
+            }
+
+
+            .system-meta {
+
+                display: none;
+            }
+
+
+            .page-heading h1 {
+
+                font-size: 21px;
+            }
+
+
+            .screening-body {
+
+                padding: 20px;
+
+                gap: 14px;
+            }
+
+
+            .status-icon {
+
+                width: 55px;
+                height: 55px;
+
+                flex-basis: 55px;
+            }
+
+
+            .status-title {
+
+                font-size: 21px;
+            }
+
+
+            .evidence-grid {
+
+                grid-template-columns:
+                    repeat(2, minmax(0,1fr));
+            }
+
+
+            .architecture {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .architecture-arrow {
+
+                transform: rotate(90deg);
+            }
+
+
+            .wokwi-frame {
+
+                height: 470px;
+            }
+
+
+            .top-status .connection:first-child {
+
+                display: none;
+            }
+
+        }
+
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                T
+            </div>
+
+
+            <div>
+
+                <div class="brand-name">
+                    TRINETRA
+                </div>
+
+                <div class="brand-sub">
+                    Baremetal · Smart India Hackathon 2026
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="top-status">
+
+
+            <div class="connection">
+
+                <span
+                    class="connection-dot"
+                    id="mqttDot">
+                </span>
+
+                <span id="mqttStatus">
+                    MQTT offline
+                </span>
+
+            </div>
+
+
+            <div class="connection">
+
+                <span
+                    class="connection-dot"
+                    id="deviceDot">
+                </span>
+
+                <span id="deviceStatus">
+                    Device offline
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     PAGE
+========================================================= -->
+
+<main class="page">
+
+
+    <!-- =====================================================
+         PAGE TITLE
+    ====================================================== -->
+
+    <section class="page-heading">
+
+
+        <div>
+
+            <h1>
+                Real-Time Detection &amp; Sensor Fusion
+            </h1>
+
+            <p>
+                A multi-sensor screening demonstrator combining
+                spectral proxy channels and e-nose response.
+            </p>
+
+        </div>
+
+
+        <div class="system-meta">
+
+            SYSTEM
+            <strong>FD-C3-01</strong>
+
+            <br>
+
+            MODE
+            <strong>PROOF OF CONCEPT</strong>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         PRIMARY RESULT
+    ====================================================== -->
+
+    <section class="screening-grid">
+
+
+        <!-- RESULT -->
+
+        <div
+            class="screening-card state-negative"
+            id="screeningCard">
+
+
+            <div class="screening-header">
+
+                <div class="section-label">
+                    Current Screening Result
+                </div>
+
+
+                <div class="analysis-state">
+
+                    <span class="analysis-state-dot"></span>
+
+                    LIVE ANALYSIS
+
+                </div>
+
+            </div>
+
+
+            <div class="screening-body">
+
+
+                <div
+                    class="status-icon"
+                    id="statusIcon">
+
+                    ✓
+
+                </div>
+
+
+                <div class="status-copy">
+
+                    <div class="status-overline">
+                        Fusion engine assessment
+                    </div>
+
+
+                    <div
+                        class="status-title"
+                        id="statusTitle">
+
+                        NEGATIVE
+
+                    </div>
+
+
+                    <div
+                        class="status-description"
+                        id="statusDescription">
+
+                        No significant fused response detected
+                        in the current screening scenario.
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- SCENARIO -->
+
+        <div class="scenario-card">
+
+
+            <div class="scenario-label">
+                Demonstration Scenario
+            </div>
+
+
+            <div
+                class="scenario-title"
+                id="scenarioTitle">
+
+                Normal Screening
+
+            </div>
+
+
+            <div
+                class="scenario-description"
+                id="scenarioDescription">
+
+                Sensor responses remain below the
+                configured demonstration thresholds.
+
+            </div>
+
+
+            <div class="scenario-rule">
+
+                The scenario label represents the programmed
+                demonstrator condition and is not a claim of
+                confirmed material identification.
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <div class="content-grid">
+
+
+        <!-- =================================================
+             LEFT COLUMN
+        ================================================= -->
+
+        <div class="column">
+
+
+            <!-- SENSOR EVIDENCE -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            Sensor Evidence
+                        </div>
+
+                        <div class="card-description">
+                            Live response across the sensing channels
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+
+                    <div class="evidence-grid">
+
+
+                        <!-- THZ 0.82 -->
+
+                        <div
+                            class="evidence"
+                            id="evidence1">
+
+                            <div class="evidence-name">
+                                THz 0.82
+                            </div>
+
+                            <div
+                                class="evidence-value"
+                                id="value1">
+
+                                0
+
+                            </div>
+
+                            <div
+                                class="evidence-state"
+                                id="state1">
+
+                                Low response
+
+                            </div>
+
+                            <div class="meter">
+
+                                <div
+                                    class="meter-fill"
+                                    id="meter1">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- THZ 1.58 -->
+
+                        <div
+                            class="evidence"
+                            id="evidence2">
+
+                            <div class="evidence-name">
+                                THz 1.58
+                            </div>
+
+                            <div
+                                class="evidence-value"
+                                id="value2">
+
+                                0
+
+                            </div>
+
+                            <div
+                                class="evidence-state"
+                                id="state2">
+
+                                Low response
+
+                            </div>
+
+                            <div class="meter">
+
+                                <div
+                                    class="meter-fill"
+                                    id="meter2">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- THZ 1.90 -->
+
+                        <div
+                            class="evidence"
+                            id="evidence3">
+
+                            <div class="evidence-name">
+                                THz 1.90
+                            </div>
+
+                            <div
+                                class="evidence-value"
+                                id="value3">
+
+                                0
+
+                            </div>
+
+                            <div
+                                class="evidence-state"
+                                id="state3">
+
+                                Low response
+
+                            </div>
+
+                            <div class="meter">
+
+                                <div
+                                    class="meter-fill"
+                                    id="meter3">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- MQ135 -->
+
+                        <div
+                            class="evidence"
+                            id="evidence4">
+
+                            <div class="evidence-name">
+                                E-Nose · MQ-135
+                            </div>
+
+                            <div
+                                class="evidence-value"
+                                id="value4">
+
+                                0
+
+                            </div>
+
+                            <div
+                                class="evidence-state"
+                                id="state4">
+
+                                Low response
+
+                            </div>
+
+                            <div class="meter">
+
+                                <div
+                                    class="meter-fill"
+                                    id="meter4">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- MQ3 -->
+
+                        <div
+                            class="evidence"
+                            id="evidence5">
+
+                            <div class="evidence-name">
+                                E-Nose · MQ-3
+                            </div>
+
+                            <div
+                                class="evidence-value"
+                                id="value5">
+
+                                0
+
+                            </div>
+
+                            <div
+                                class="evidence-state"
+                                id="state5">
+
+                                Low response
+
+                            </div>
+
+                            <div class="meter">
+
+                                <div
+                                    class="meter-fill"
+                                    id="meter5">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- FUSION PIPELINE -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            Detection Pipeline
+                        </div>
+
+                        <div class="card-description">
+                            From sensing to screening decision
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+
+                    <div class="architecture">
+
+
+                        <div class="architecture-box">
+
+                            <div class="architecture-step">
+                                01 · SENSING
+                            </div>
+
+                            <div class="architecture-title">
+                                THz Response Channels
+                            </div>
+
+                            <div class="architecture-text">
+                                Multiple spectral proxy channels
+                                provide independent response
+                                measurements.
+                            </div>
+
+                        </div>
+
+
+                        <div class="architecture-arrow">
+                            →
+                        </div>
+
+
+                        <div class="architecture-box">
+
+                            <div class="architecture-step">
+                                02 · FUSION
+                            </div>
+
+                            <div class="architecture-title">
+                                E-Nose + ESP32-C3
+                            </div>
+
+                            <div class="architecture-text">
+                                Sensor responses are combined
+                                using the programmed fusion
+                                decision layer.
+                            </div>
+
+                        </div>
+
+
+                        <div class="architecture-arrow">
+                            →
+                        </div>
+
+
+                        <div class="architecture-box">
+
+                            <div class="architecture-step">
+                                03 · DECISION
+                            </div>
+
+                            <div class="architecture-title">
+                                Screening Output
+                            </div>
+
+                            <div class="architecture-text">
+                                The system produces a
+                                Negative, Inconclusive or
+                                Suspicious result.
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- WOKWI -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            Prototype Hardware
+                        </div>
+
+                        <div class="card-description">
+                            Live ESP32-C3 implementation in Wokwi
+                        </div>
+
+                    </div>
+
+
+                    <div class="section-label">
+                        SIMULATION
+                    </div>
+
+                </div>
+
+
+                <div class="prototype-container">
+
+
+                    <iframe
+                        class="wokwi-frame"
+                        src="https://wokwi.com/projects/474347109940540417?embed=1"
+                        title="Fusion Detector ESP32-C3 Wokwi simulation"
+                        loading="lazy"
+                        allowfullscreen>
+                    </iframe>
+
+
+                    <div class="prototype-footer">
+
+                        <div class="prototype-note">
+
+                            ESP32-C3 · THz proxy inputs · MQ-135 · MQ-3 · LCD · status LEDs
+
+                        </div>
+
+
+                        <a
+                            class="wokwi-link"
+                            href="https://wokwi.com/projects/474347109940540417"
+                            target="_blank"
+                            rel="noopener noreferrer">
+
+                            Open Wokwi ↗
+
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             RIGHT COLUMN
+        ================================================= -->
+
+        <aside class="column">
+
+
+            <!-- CONTROLS -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            Demonstration Controls
+                        </div>
+
+                        <div class="card-description">
+                            Configure the virtual sensor response
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+
+                    <!-- THZ 0.82 -->
+
+                    <div class="control">
+
+                        <div class="control-top">
+
+                            <span class="control-name">
+                                THz 0.82
+                            </span>
+
+                            <span
+                                class="control-value"
+                                id="controlValue1">
+
+                                0
+
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="control1"
+                            type="range"
+                            min="0"
+                            max="4095"
+                            value="0"
+                            oninput="controlChanged()"
+                        >
+
+                    </div>
+
+
+
+                    <!-- THZ 1.58 -->
+
+                    <div class="control">
+
+                        <div class="control-top">
+
+                            <span class="control-name">
+                                THz 1.58
+                            </span>
+
+                            <span
+                                class="control-value"
+                                id="controlValue2">
+
+                                0
+
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="control2"
+                            type="range"
+                            min="0"
+                            max="4095"
+                            value="0"
+                            oninput="controlChanged()"
+                        >
+
+                    </div>
+
+
+
+                    <!-- THZ 1.90 -->
+
+                    <div class="control">
+
+                        <div class="control-top">
+
+                            <span class="control-name">
+                                THz 1.90
+                            </span>
+
+                            <span
+                                class="control-value"
+                                id="controlValue3">
+
+                                0
+
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="control3"
+                            type="range"
+                            min="0"
+                            max="4095"
+                            value="0"
+                            oninput="controlChanged()"
+                        >
+
+                    </div>
+
+
+
+                    <!-- MQ135 -->
+
+                    <div class="control">
+
+                        <div class="control-top">
+
+                            <span class="control-name">
+                                E-Nose · MQ-135
+                            </span>
+
+                            <span
+                                class="control-value"
+                                id="controlValue4">
+
+                                0
+
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="control4"
+                            type="range"
+                            min="0"
+                            max="4095"
+                            value="0"
+                            oninput="controlChanged()"
+                        >
+
+                    </div>
+
+
+
+                    <!-- MQ3 -->
+
+                    <div class="control">
+
+                        <div class="control-top">
+
+                            <span class="control-name">
+                                E-Nose · MQ-3
+                            </span>
+
+                            <span
+                                class="control-value"
+                                id="controlValue5">
+
+                                0
+
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="control5"
+                            type="range"
+                            min="0"
+                            max="4095"
+                            value="0"
+                            oninput="controlChanged()"
+                        >
+
+                    </div>
+
+
+
+                    <!-- PRESETS -->
+
+                    <div class="preset-grid">
+
+
+                        <button
+                            class="preset"
+                            onclick="loadPreset('negative')">
+
+                            Negative
+
+                        </button>
+
+
+                        <button
+                            class="preset"
+                            onclick="loadPreset('inconclusive')">
+
+                            Inconclusive
+
+                        </button>
+
+
+                        <button
+                            class="preset narcotics"
+                            onclick="loadPreset('narcotics')">
+
+                            Narcotics Example
+
+                        </button>
+
+
+                        <button
+                            class="preset explosive"
+                            onclick="loadPreset('explosive')">
+
+                            Explosive Example
+
+                        </button>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- HARDWARE LED OUTPUT -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            Hardware Status LEDs
+                        </div>
+
+                        <div class="card-description">
+                            Mirrors the physical ESP32-C3 outputs
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+
+                    <div class="led-list">
+
+
+                        <div
+                            class="led-row active-green"
+                            id="ledNegative">
+
+                            <span class="led-light"></span>
+
+                            <span class="led-label">
+                                Negative
+                            </span>
+
+                            <span
+                                class="led-state"
+                                id="ledNegativeState">
+
+                                ACTIVE
+
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="led-row"
+                            id="ledInconclusive">
+
+                            <span class="led-light"></span>
+
+                            <span class="led-label">
+                                Inconclusive
+                            </span>
+
+                            <span
+                                class="led-state"
+                                id="ledInconclusiveState">
+
+                                OFF
+
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="led-row"
+                            id="ledSuspicious">
+
+                            <span class="led-light"></span>
+
+                            <span class="led-label">
+                                Suspicious
+                            </span>
+
+                            <span
+                                class="led-state"
+                                id="ledSuspiciousState">
+
+                                OFF
+
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- DEVICE INFORMATION -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            System Information
+                        </div>
+
+                        <div class="card-description">
+                            Prototype communication
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+
+                    <div class="info-list">
+
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                Controller
+                            </span>
+
+                            <span class="info-value">
+                                ESP32-C3
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                Network
+                            </span>
+
+                            <span class="info-value">
+                                Wokwi-GUEST
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                Transport
+                            </span>
+
+                            <span class="info-value">
+                                MQTT
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                Telemetry
+                            </span>
+
+                            <span class="info-value">
+                                baremetal/fusion-detector/demo/telemetry
+                            </span>
+
+                        </div>
+
+
+                        <div class="info-row">
+
+                            <span class="info-label">
+                                Command
+                            </span>
+
+                            <span class="info-value">
+                                baremetal/fusion-detector/demo/command
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- EVENT LOG -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+                            System Activity
+                        </div>
+
+                        <div class="card-description">
+                            Recent events
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div
+                        class="event-log"
+                        id="eventLog">
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </aside>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         NOTICE
+    ====================================================== -->
+
+    <div class="notice">
+
+        <strong>Prototype / simulation notice:</strong>
+        The THz channels displayed by this demonstrator are
+        simulated proxy inputs and do not represent measurements
+        from physical THz spectroscopy hardware. MQ-135 and MQ-3
+        provide the e-nose demonstration layer. “Narcotics Example”
+        and “Explosive Example” are programmed sensor-fusion
+        scenarios and do not constitute confirmed identification
+        of a substance.
+
+    </div>
+
+
+
+    <footer>
+
+        Fusion Detector · Baremetal · SIH 2026
+
+    </footer>
+
+
+</main>
+
+
+
+<script>
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const MQTT_BROKER =
+    "wss://broker.hivemq.com:8884/mqtt";
+
+
+const TELEMETRY_TOPIC =
+    "baremetal/fusion-detector/demo/telemetry";
+
+
+const COMMAND_TOPIC =
+    "baremetal/fusion-detector/demo/command";
+
+
+/*
+   These match the ESP32 fusion logic.
+*/
+
+const THZ_THRESHOLD = 2600;
+
+const ENOSE_THRESHOLD = 2200;
+
+
+/* =========================================================
+   APPLICATION STATE
+========================================================= */
+
+let mqttClient = null;
+
+let localMode = true;
+
+let commandTimer = null;
+
+
+const data = {
+
+    thz082: 0,
+
+    thz158: 0,
+
+    thz190: 0,
+
+    mq135: 0,
+
+    mq3: 0,
+
+    verdict: "NEGATIVE"
+
+};
+
+
+/* =========================================================
+   LOGGING
+========================================================= */
+
+function log(message) {
+
+    const logBox =
+        document.getElementById("eventLog");
+
+
+    const event =
+        document.createElement("div");
+
+
+    event.className = "event";
+
+
+    event.textContent =
+        "[" +
+        new Date().toLocaleTimeString() +
+        "] " +
+        message;
+
+
+    logBox.prepend(event);
+
+
+    while (
+        logBox.children.length > 30
+    ) {
+
+        logBox.removeChild(
+            logBox.lastChild
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MQTT CONNECTION
+========================================================= */
+
+function connectMQTT() {
+
+    log(
+        "Connecting to MQTT broker..."
+    );
+
+
+    try {
+
+        mqttClient =
+            mqtt.connect(
+                MQTT_BROKER,
+                {
+
+                    clientId:
+                        "fd-dashboard-" +
+                        Math.random()
+                            .toString(16)
+                            .slice(2),
+
+                    clean: true,
+
+                    connectTimeout: 5000,
+
+                    reconnectPeriod: 3000
+
+                }
+            );
+
+
+        mqttClient.on(
+            "connect",
+            function() {
+
+                setMQTTStatus(true);
+
+
+                log(
+                    "MQTT connection established."
+                );
+
+
+                mqttClient.subscribe(
+                    TELEMETRY_TOPIC,
+                    function(error) {
+
+                        if (error) {
+
+                            log(
+                                "Telemetry subscription failed."
+                            );
+
+                        }
+                        else {
+
+                            log(
+                                "Telemetry channel subscribed."
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        mqttClient.on(
+            "message",
+            function(topic, message) {
+
+                if (
+                    topic !==
+                    TELEMETRY_TOPIC
+                ) {
+
+                    return;
+
+                }
+
+
+                try {
+
+                    const packet =
+                        JSON.parse(
+                            message.toString()
+                        );
+
+
+                    receiveTelemetry(
+                        packet
+                    );
+
+                }
+                catch(error) {
+
+                    log(
+                        "Received invalid telemetry."
+                    );
+
+                }
+
+            }
+        );
+
+
+        mqttClient.on(
+            "close",
+            function() {
+
+                setMQTTStatus(false);
+
+            }
+        );
+
+
+        mqttClient.on(
+            "error",
+            function() {
+
+                setMQTTStatus(false);
+
+            }
+        );
+
+    }
+    catch(error) {
+
+        log(
+            "MQTT unavailable. Local mode remains active."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MQTT STATUS
+========================================================= */
+
+function setMQTTStatus(online) {
+
+    const dot =
+        document.getElementById(
+            "mqttDot"
+        );
+
+
+    const label =
+        document.getElementById(
+            "mqttStatus"
+        );
+
+
+    if (online) {
+
+        dot.classList.add(
+            "online"
+        );
+
+        label.textContent =
+            "MQTT online";
+
+    }
+    else {
+
+        dot.classList.remove(
+            "online"
+        );
+
+        label.textContent =
+            "MQTT offline";
+
+    }
+
+}
+
+
+/* =========================================================
+   RECEIVE ESP32 TELEMETRY
+========================================================= */
+
+function receiveTelemetry(packet) {
+
+
+    /*
+       Only update fields that actually exist
+       in the received packet.
+    */
+
+    if (
+        packet.thz082 !== undefined
+    ) {
+
+        data.thz082 =
+            Number(packet.thz082);
+
+    }
+
+
+    if (
+        packet.thz158 !== undefined
+    ) {
+
+        data.thz158 =
+            Number(packet.thz158);
+
+    }
+
+
+    if (
+        packet.thz190 !== undefined
+    ) {
+
+        data.thz190 =
+            Number(packet.thz190);
+
+    }
+
+
+    if (
+        packet.mq135 !== undefined
+    ) {
+
+        data.mq135 =
+            Number(packet.mq135);
+
+    }
+
+
+    if (
+        packet.mq3 !== undefined
+    ) {
+
+        data.mq3 =
+            Number(packet.mq3);
+
+    }
+
+
+    if (
+        packet.verdict !== undefined
+    ) {
+
+        data.verdict =
+            String(packet.verdict)
+                .toUpperCase();
+
+    }
+
+
+    /*
+       A telemetry packet proves the ESP32
+       is communicating.
+    */
+
+    document
+        .getElementById("deviceDot")
+        .classList.add("online");
+
+
+    document
+        .getElementById("deviceStatus")
+        .textContent =
+        "Device online";
+
+
+    updateUI();
+
+}
+
+
+/* =========================================================
+   FUSION LOGIC
+========================================================= */
+
+function calculateFusion() {
+
+    const eNoseHigh =
+        data.mq135 >= ENOSE_THRESHOLD ||
+        data.mq3 >= ENOSE_THRESHOLD;
+
+
+    /*
+       Rule 1:
+       Everything below threshold
+       = NEGATIVE
+    */
+
+    if (
+
+        data.thz082 < THZ_THRESHOLD &&
+
+        data.thz158 < THZ_THRESHOLD &&
+
+        data.thz190 < THZ_THRESHOLD &&
+
+        !eNoseHigh
+
+    ) {
+
+        return "NEGATIVE";
+
+    }
+
+
+    /*
+       Rule 2:
+       THz 0.82 + e-nose
+       = explosive-type example
+    */
+
+    if (
+
+        data.thz082 >= THZ_THRESHOLD &&
+
+        eNoseHigh
+
+    ) {
+
+        return "EXPLOSIVE SUSPICIOUS";
+
+    }
+
+
+    /*
+       Rule 3:
+       THz 1.90 + e-nose
+       = narcotic-type example
+    */
+
+    if (
+
+        data.thz190 >= THZ_THRESHOLD &&
+
+        eNoseHigh
+
+    ) {
+
+        return "NARCOTIC SUSPICIOUS";
+
+    }
+
+
+    /*
+       Everything else
+       = INCONCLUSIVE
+    */
+
+    return "INCONCLUSIVE";
+
+}
+
+
+/* =========================================================
+   MAIN UI UPDATE
+========================================================= */
+
+function updateUI() {
+
+
+    updateEvidence(
+        data.thz082,
+        1,
+        THZ_THRESHOLD
+    );
+
+
+    updateEvidence(
+        data.thz158,
+        2,
+        THZ_THRESHOLD
+    );
+
+
+    updateEvidence(
+        data.thz190,
+        3,
+        THZ_THRESHOLD
+    );
+
+
+    updateEvidence(
+        data.mq135,
+        4,
+        ENOSE_THRESHOLD
+    );
+
+
+    updateEvidence(
+        data.mq3,
+        5,
+        ENOSE_THRESHOLD
+    );
+
+
+    updateResult(
+        data.verdict
+    );
+
+}
+
+
+/* =========================================================
+   EVIDENCE UPDATE
+========================================================= */
+
+function updateEvidence(
+    value,
+    index,
+    threshold
+) {
+
+    value =
+        Math.max(
+            0,
+            Math.min(
+                4095,
+                Number(value) || 0
+            )
+        );
+
+
+    const valueElement =
+        document.getElementById(
+            "value" + index
+        );
+
+
+    const stateElement =
+        document.getElementById(
+            "state" + index
+        );
+
+
+    const meterElement =
+        document.getElementById(
+            "meter" + index
+        );
+
+
+    const cardElement =
+        document.getElementById(
+            "evidence" + index
+        );
+
+
+    valueElement.textContent =
+        Math.round(value);
+
+
+    meterElement.style.width =
+        (
+            value / 4095 * 100
+        ) + "%";
+
+
+    const high =
+        value >= threshold;
+
+
+    cardElement.classList.toggle(
+        "high",
+        high
+    );
+
+
+    stateElement.textContent =
+        high
+            ? "High response"
+            : "Low response";
+
+}
+
+
+/* =========================================================
+   RESULT UPDATE
+========================================================= */
+
+function updateResult(verdict) {
+
+
+    const card =
+        document.getElementById(
+            "screeningCard"
+        );
+
+
+    const icon =
+        document.getElementById(
+            "statusIcon"
+        );
+
+
+    const title =
+        document.getElementById(
+            "statusTitle"
+        );
+
+
+    const description =
+        document.getElementById(
+            "statusDescription"
+        );
+
+
+    const scenarioTitle =
+        document.getElementById(
+            "scenarioTitle"
+        );
+
+
+    const scenarioDescription =
+        document.getElementById(
+            "scenarioDescription"
+        );
+
+
+    /*
+       Remove old state.
+    */
+
+    card.classList.remove(
+        "state-negative",
+        "state-inconclusive",
+        "state-suspicious"
+    );
+
+
+    /* ================================================
+       NEGATIVE
+    ================================================ */
+
+    if (
+        verdict === "NEGATIVE"
+    ) {
+
+        card.classList.add(
+            "state-negative"
+        );
+
+
+        icon.textContent = "✓";
+
+
+        title.textContent =
+            "NEGATIVE";
+
+
+        description.textContent =
+            "No significant fused response detected in the current screening scenario.";
+
+
+        scenarioTitle.textContent =
+            "Normal Screening";
+
+
+        scenarioDescription.textContent =
+            "Sensor responses remain below the configured demonstration thresholds.";
+
+    }
+
+
+    /* ================================================
+       INCONCLUSIVE
+    ================================================ */
+
+    else if (
+        verdict === "INCONCLUSIVE"
+    ) {
+
+        card.classList.add(
+            "state-inconclusive"
+        );
+
+
+        icon.textContent = "?";
+
+
+        title.textContent =
+            "INCONCLUSIVE";
+
+
+        description.textContent =
+            "The available sensor evidence does not satisfy a complete fusion condition.";
+
+
+        scenarioTitle.textContent =
+            "Partial / Conflicting Response";
+
+
+        scenarioDescription.textContent =
+            "One or more sensor channels are elevated, but the programmed fusion condition is incomplete.";
+
+    }
+
+
+    /* ================================================
+       NARCOTIC
+    ================================================ */
+
+    else if (
+        verdict ===
+        "NARCOTIC SUSPICIOUS"
+    ) {
+
+        card.classList.add(
+            "state-suspicious"
+        );
+
+
+        icon.textContent = "!";
+
+
+        title.textContent =
+            "SUSPICIOUS";
+
+
+        description.textContent =
+            "Narcotic-type demonstration response produced by the fusion rules.";
+
+
+        scenarioTitle.textContent =
+            "NARCOTICS EXAMPLE";
+
+
+        scenarioDescription.textContent =
+            "The 1.90 THz proxy channel and e-nose response have crossed their configured demonstration thresholds.";
+
+    }
+
+
+    /* ================================================
+       EXPLOSIVE
+    ================================================ */
+
+    else if (
+        verdict ===
+        "EXPLOSIVE SUSPICIOUS"
+    ) {
+
+        card.classList.add(
+            "state-suspicious"
+        );
+
+
+        icon.textContent = "!";
+
+
+        title.textContent =
+            "SUSPICIOUS";
+
+
+        description.textContent =
+            "Explosive-type demonstration response produced by the fusion rules.";
+
+
+        scenarioTitle.textContent =
+            "EXPLOSIVE EXAMPLE";
+
+
+        scenarioDescription.textContent =
+            "The 0.82 THz proxy channel and e-nose response have crossed their configured demonstration thresholds.";
+
+    }
+
+
+    updateLEDs(
+        verdict
+    );
+
+}
+
+
+/* =========================================================
+   HARDWARE LED REPRESENTATION
+========================================================= */
+
+function updateLEDs(verdict) {
+
+
+    const negative =
+        document.getElementById(
+            "ledNegative"
+        );
+
+
+    const inconclusive =
+        document.getElementById(
+            "ledInconclusive"
+        );
+
+
+    const suspicious =
+        document.getElementById(
+            "ledSuspicious"
+        );
+
+
+    const negativeState =
+        document.getElementById(
+            "ledNegativeState"
+        );
+
+
+    const inconclusiveState =
+        document.getElementById(
+            "ledInconclusiveState"
+        );
+
+
+    const suspiciousState =
+        document.getElementById(
+            "ledSuspiciousState"
+        );
+
+
+    /*
+       Reset all LEDs.
+    */
+
+    negative.className =
+        "led-row";
+
+
+    inconclusive.className =
+        "led-row";
+
+
+    suspicious.className =
+        "led-row";
+
+
+    negativeState.textContent =
+        "OFF";
+
+
+    inconclusiveState.textContent =
+        "OFF";
+
+
+    suspiciousState.textContent =
+        "OFF";
+
+
+    /*
+       NEGATIVE
+    */
+
+    if (
+        verdict === "NEGATIVE"
+    ) {
+
+        negative.classList.add(
+            "active-green"
+        );
+
+        negativeState.textContent =
+            "ACTIVE";
+
+        return;
+
+    }
+
+
+    /*
+       INCONCLUSIVE
+    */
+
+    if (
+        verdict === "INCONCLUSIVE"
+    ) {
+
+        inconclusive.classList.add(
+            "active-yellow"
+        );
+
+        inconclusiveState.textContent =
+            "ACTIVE";
+
+        return;
+
+    }
+
+
+    /*
+       Both suspicious scenarios
+       use the physical red LED.
+    */
+
+    suspicious.classList.add(
+        "active-red"
+    );
+
+    suspiciousState.textContent =
+        "ACTIVE";
+
+}
+
+
+/* =========================================================
+   LOCAL CONTROL INPUT
+========================================================= */
+
+function controlChanged() {
+
+
+    const values = [];
+
+
+    for (
+        let i = 1;
+        i <= 5;
+        i++
+    ) {
+
+        const value =
+            Number(
+                document.getElementById(
+                    "control" + i
+                ).value
+            );
+
+
+        document
+            .getElementById(
+                "controlValue" + i
+            )
+            .textContent =
+            value;
+
+
+        values.push(value);
+
+    }
+
+
+    /*
+       Update local state immediately.
+    */
+
+    data.thz082 = values[0];
+
+    data.thz158 = values[1];
+
+    data.thz190 = values[2];
+
+    data.mq135 = values[3];
+
+    data.mq3 = values[4];
+
+
+    /*
+       Calculate exactly the same
+       fusion rules as the ESP32.
+    */
+
+    data.verdict =
+        calculateFusion();
+
+
+    updateUI();
+
+
+    /*
+       Also send the values to the ESP32
+       when MQTT is available.
+    */
+
+    queueMQTTCommand(
+        values
+    );
+
+}
+
+
+/* =========================================================
+   MQTT COMMAND DEBOUNCE
+========================================================= */
+
+function queueMQTTCommand(
+    values
+) {
+
+    clearTimeout(
+        commandTimer
+    );
+
+
+    commandTimer =
+        setTimeout(
+            function() {
+
+                sendCommand({
+
+                    mode: "dashboard",
+
+                    thz082:
+                        values[0],
+
+                    thz158:
+                        values[1],
+
+                    thz190:
+                        values[2],
+
+                    mq135:
+                        values[3],
+
+                    mq3:
+                        values[4]
+
+                });
+
+            },
+            120
+        );
+
+}
+
+
+/* =========================================================
+   SEND MQTT COMMAND
+========================================================= */
+
+function sendCommand(
+    payload
+) {
+
+    if (
+        !mqttClient ||
+        !mqttClient.connected
+    ) {
+
+        return;
+
+    }
+
+
+    mqttClient.publish(
+        COMMAND_TOPIC,
+        JSON.stringify(payload)
+    );
+
+}
+
+
+/* =========================================================
+   PRESET VALUES
+========================================================= */
+
+function loadPreset(
+    preset
+) {
+
+    let values;
+
+
+    /*
+       NEGATIVE
+    */
+
+    if (
+        preset === "negative"
+    ) {
+
+        values = [
+
+            500,
+            600,
+            500,
+            500,
+            500
+
+        ];
+
+    }
+
+
+    /*
+       INCONCLUSIVE
+    */
+
+    else if (
+        preset === "inconclusive"
+    ) {
+
+        values = [
+
+            3100,
+            700,
+            700,
+            1200,
+            900
+
+        ];
+
+    }
+
+
+    /*
+       NARCOTICS EXAMPLE
+    */
+
+    else if (
+        preset === "narcotics"
+    ) {
+
+        values = [
+
+            700,
+            1000,
+            3400,
+            2900,
+            2700
+
+        ];
+
+    }
+
+
+    /*
+       EXPLOSIVE EXAMPLE
+    */
+
+    else if (
+        preset === "explosive"
+    ) {
+
+        values = [
+
+            3400,
+            1000,
+            700,
+            2900,
+            2700
+
+        ];
+
+    }
+
+
+    /*
+       Update sliders.
+    */
+
+    values.forEach(
+        function(value,index) {
+
+            const slider =
+                document.getElementById(
+                    "control" +
+                    (index + 1)
+                );
+
+
+            const valueLabel =
+                document.getElementById(
+                    "controlValue" +
+                    (index + 1)
+                );
+
+
+            slider.value =
+                value;
+
+
+            valueLabel.textContent =
+                value;
+
+        }
+    );
+
+
+    /*
+       Update application.
+    */
+
+    controlChanged();
+
+
+    log(
+        "Loaded " +
+        preset.toUpperCase() +
+        " demonstration scenario."
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        log(
+            "Fusion Detector dashboard initialized."
+        );
+
+
+        log(
+            "Local demonstration controls ready."
+        );
+
+
+        /*
+           Initial UI.
+        */
+
+        updateUI();
+
+
+        /*
+           MQTT connection.
+        */
+
+        connectMQTT();
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
