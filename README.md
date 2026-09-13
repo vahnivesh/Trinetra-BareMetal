@@ -5,8 +5,63 @@
 <h1 align="center">BareMetal</h1>
 
 <p align="center">
-  Smart India Hackathon 2026 · SIH26026 · Team ID 119910
+  <b>Smart India Hackathon 2026</b> · SIH26026 · Team ID 119910
 </p>
 
-# Trinetra
-BareMetal | SIH 2026 • SIH26026 • Team 119910. A modular railway screening concept with robot, handheld and fixed-node formats. Includes an ESP32-C3 prototype simulation, THz proxy and gas-sensor fusion, and an interactive dashboard demonstrating narcotics and explosives screening logic with human review.
+<p align="center">
+  <b>TRINETRA</b><br>
+  <i>Modular Railway Threat Screening System</i>
+</p>
+
+---
+
+## ◈ About Trinetra
+
+**Trinetra** is a modular railway security screening concept designed to detect and identify potential **narcotics and explosive threats** across railway environments.
+
+The system can be deployed in three configurations:
+
+- **Mobile robotic platform**
+- **Handheld screening device**
+- **Fixed screening node**
+
+The prototype demonstrates **multi-sensor fusion** using an **ESP32-C3**, a **THz sensing proxy**, and **gas-sensor inputs**, combined with an interactive dashboard for threat visualization and **human-in-the-loop verification**.
+
+---
+
+## ▶ Video Explanation
+
+A complete walkthrough of the **Trinetra concept, system architecture, prototype, sensor-fusion workflow, and dashboard** is available below.
+
+<p align="center">
+  <a href="./trinetra-baremetal.mp4">
+    <b>▶ WATCH THE TRINETRA VIDEO EXPLANATION</b>
+  </a>
+</p>
+
+---
+
+## ◆ Key Features
+
+| Feature | Description |
+|---|---|
+| **Modular Deployment** | Robot, handheld, and fixed-node configurations |
+| **Multi-Sensor Fusion** | Combines THz proxy and gas-sensor inputs |
+| **Threat Screening** | Demonstrates narcotics and explosives screening logic |
+| **Interactive Dashboard** | Displays sensor readings, threat classification, and screening status |
+| **Human Verification** | Supports operator review before final decision-making |
+| **ESP32-C3 Prototype** | Demonstrates the embedded sensing and processing architecture |
+
+---
+
+## ⚙ Prototype
+
+The current implementation is a **proof-of-concept prototype** designed to demonstrate the proposed Trinetra architecture and workflow.
+
+It integrates:
+
+- **ESP32-C3** for embedded processing
+- **THz sensing proxy** for material-screening simulation
+- **Gas sensors** for chemical signature simulation
+- **Sensor-fusion logic** for combining multiple inputs
+- **Interactive dashboard** for visualization and operator interaction
