@@ -27,19 +27,30 @@ The system can be deployed in three configurations:
 
 The prototype demonstrates **multi-sensor fusion** using an **ESP32-C3**, a **THz sensing proxy**, and **gas-sensor inputs**, combined with an interactive dashboard for threat visualization and **human-in-the-loop verification**.
 
+
 ---
 
 ## ▶ Video Explanation
 
-A complete walkthrough of the **Trinetra concept, system architecture, prototype, sensor-fusion workflow, and dashboard** is shown below.
-
-<video width="800" controls>
-  <source src="https://raw.githubusercontent.com/vahnivesh/Trinetra-BareMetal/main/trinetra-baremetal.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<p align="center">
+  <b>Trinetra — System Overview & Prototype Demonstration</b>
+</p>
 
 <p align="center">
-  <i>Trinetra — System Overview & Prototype Demonstration</i>
+  A complete walkthrough of the concept, architecture, ESP32-C3 prototype,
+  sensor fusion, and dashboard.
+</p>
+
+<div align="center">
+
+https://github.com/user-attachments/assets/d781edf7-2a60-48e7-be07-bdfa2accb479
+
+</div>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=Fh-CTrcxgO4&t=3s">
+    <img src="https://img.shields.io/badge/▶%20Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube">
+  </a>
 </p>
 
 ---
