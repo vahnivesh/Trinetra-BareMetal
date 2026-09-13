@@ -31,12 +31,17 @@ The prototype demonstrates **multi-sensor fusion** using an **ESP32-C3**, a **TH
 
 ## ▶ Video Explanation
 
-A complete walkthrough of the **Trinetra concept, system architecture, prototype, sensor-fusion workflow, and dashboard** is available below.
+A complete walkthrough of the **Trinetra concept, system architecture, prototype, sensor-fusion workflow, and dashboard** is shown below.
 
 <p align="center">
-  <a href="./trinetra-baremetal.mp4">
-    <b>▶ WATCH THE TRINETRA VIDEO EXPLANATION</b>
-  </a>
+  <video width="800" controls>
+    <source src="./trinetra-baremetal.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
+<p align="center">
+  <i>Trinetra — System Overview & Prototype Demonstration</i>
 </p>
 
 ---
