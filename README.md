@@ -30,26 +30,24 @@ The prototype demonstrates **multi-sensor fusion** using an **ESP32-C3**, a **TH
 
 ---
 
-## ▶ Video Explanation
+## Prototype Demonstration
 
 <p align="center">
   <b>Trinetra — System Overview & Prototype Demonstration</b>
 </p>
 
 <p align="center">
-  A complete walkthrough of the concept, architecture, ESP32-C3 prototype,
-  sensor fusion, and dashboard.
+  A visual walkthrough of the Trinetra concept, prototype,
+  sensor fusion, and threat-screening workflow.
 </p>
 
-<div align="center">
-
-https://github.com/user-attachments/assets/d781edf7-2a60-48e7-be07-bdfa2accb479
-
-</div>
+<p align="center">
+  <img src="./trinetra.gif" alt="Trinetra demonstration" width="900">
+</p>
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=Fh-CTrcxgO4&t=3s">
-    <img src="https://img.shields.io/badge/▶%20Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube">
+    <img src="https://img.shields.io/badge/▶%20Watch%20Full%20Video%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full Video on YouTube">
   </a>
 </p>
 
