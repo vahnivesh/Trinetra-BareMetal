@@ -122,20 +122,6 @@ The current implementation is a **proof-of-concept prototype** built to demonstr
 - **Sensor-fusion logic** — combines multiple inputs into a single threat score
 - **Interactive dashboard** — visualization layer for operators
 
-## Tech Stack
-
-<!-- Fill in with your actual stack -->
-- **Hardware:** ESP32-C3, THz sensing proxy module, gas sensor array
-- **Firmware:** C / C++ (Arduino / ESP-IDF)
-- **Dashboard:** _(e.g. React / Flask / Node.js — update with your actual stack)_
-- **Communication:** _(e.g. Wi-Fi / MQTT / BLE — update as applicable)_
-
-## Team
-
-**Team BareMetal** — Smart India Hackathon 2026, Team ID 119910
-
-<!-- Add team member names and roles here -->
-
 ## License
 
 <!-- Add your chosen license, e.g. MIT, Apache-2.0 -->
