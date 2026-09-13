@@ -33,12 +33,10 @@ The prototype demonstrates **multi-sensor fusion** using an **ESP32-C3**, a **TH
 
 A complete walkthrough of the **Trinetra concept, system architecture, prototype, sensor-fusion workflow, and dashboard** is shown below.
 
-<p align="center">
-  <video width="800" controls>
-    <source src="./trinetra-baremetal.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</p>
+<video width="800" controls>
+  <source src="https://raw.githubusercontent.com/vahnivesh/Trinetra-BareMetal/main/trinetra-baremetal.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 <p align="center">
   <i>Trinetra — System Overview & Prototype Demonstration</i>
@@ -70,3 +68,5 @@ It integrates:
 - **Gas sensors** for chemical signature simulation
 - **Sensor-fusion logic** for combining multiple inputs
 - **Interactive dashboard** for visualization and operator interaction
+
+---
