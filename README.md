@@ -100,7 +100,7 @@ Potential threats are then routed for **human-in-the-loop verification**, ensuri
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vahnivesh/Trinetra-BareMetal/main/3dmodel.gif"
+  <img src="https://raw.githubusercontent.com/vahnivesh/Trinetra-BareMetal/main/3dmodels.gif"
        alt="Trinetra 3D Models — Robot, Handheld Device and Fixed Node"
        width="100%">
 </p>
