@@ -134,7 +134,7 @@ Potential threats are then routed for **human-in-the-loop verification**, ensuri
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=Fh-CTrcxgO4&t=3s">
+  <a href="link">
     <img src="https://img.shields.io/badge/▶%20Watch%20Full%20Video%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"
          alt="Watch Full Video on YouTube">
   </a>
